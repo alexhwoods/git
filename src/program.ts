@@ -25,6 +25,9 @@ program
     process.stdout.write(contents);
   });
 
+// @note: opting not to support --type
+// To create trees, use git write-tree
+// To create commits, use git commit-tree
 program
   .command("hash-object")
   .arguments("<filename>")
