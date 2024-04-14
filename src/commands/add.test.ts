@@ -5,7 +5,6 @@ import crypto from "crypto";
 import * as child_process from "child_process";
 
 import { add } from "./add";
-import { hashObject } from "./hash-object";
 
 describe("add", () => {
   test("single file added", () => {
@@ -20,33 +19,91 @@ describe("add", () => {
     const content = "Hello, World!";
     fs.writeFileSync(filename, content);
 
-    // Act
-    // call git update-index --add hello.txt
-    const lsFilesResultBefore = child_process
-      .execSync(`cd ${tempDir} && git ls-files --stage`)
-      .toString();
-
-    console.log(lsFilesResultBefore);
+    // Get comparison ls files
     child_process.execSync(`cd ${tempDir} && git add hello.txt`);
-
-    // call git ls-files --stage
-    const lsFilesResult = child_process
+    const lsFilesFromActualGit = child_process
       .execSync(`cd ${tempDir} && git ls-files --stage`)
       .toString();
+    child_process.execSync(`cd ${tempDir} && git reset hello.txt`).toString();
 
-    console.log(lsFilesResult);
-    // updateIndex(
-    //   {
-    //     root: tempDir,
-    //     cacheInfo: {
-    //       mode: "100644",
-    //       hash: "b1946ac92492d2347c6235b4d2611184",
-    //       path: "hello.txt",
-    //     },
-    //   },
-    //   { add: true }
-    // );
+    // Act
+    add({ root: tempDir, paths: ["hello.txt"] });
+
+    const lsFilesResultAfterAdd = child_process
+      .execSync(`cd ${tempDir} && git ls-files --stage`)
+      .toString();
 
     // Assert
+    expect(lsFilesResultAfterAdd).toEqual(lsFilesFromActualGit);
+  });
+
+  test("single file added - staging area already populated", () => {
+    // Arrange
+    const tempDir = path.join(
+      os.tmpdir(),
+      crypto.randomBytes(16).toString("hex")
+    );
+    child_process.execSync(`mkdir ${tempDir}`);
+    child_process.execSync(`cd ${tempDir} && git init`);
+    fs.writeFileSync(path.join(tempDir, "exists-already.txt"), "Old news");
+    child_process.execSync(`cd ${tempDir} && git add exists-already.txt`);
+
+    const filename = path.join(tempDir, "hello.txt");
+    const content = "Hello, World!";
+    fs.writeFileSync(filename, content);
+
+    // Get comparison ls files
+    child_process.execSync(`cd ${tempDir} && git add hello.txt`);
+    const lsFilesFromActualGit = child_process
+      .execSync(`cd ${tempDir} && git ls-files --stage`)
+      .toString();
+    child_process.execSync(`cd ${tempDir} && git reset hello.txt`).toString();
+
+    // Act
+    add({ root: tempDir, paths: ["hello.txt"] });
+
+    const lsFilesResultAfterAdd = child_process
+      .execSync(`cd ${tempDir} && git ls-files --stage`)
+      .toString();
+
+    // Assert
+    expect(lsFilesResultAfterAdd).toEqual(lsFilesFromActualGit);
+  });
+
+  test("single file added - staging area already populated (with directories too)", () => {
+    // Arrange
+    const tempDir = path.join(
+      os.tmpdir(),
+      crypto.randomBytes(16).toString("hex")
+    );
+    child_process.execSync(`mkdir ${tempDir}`);
+    child_process.execSync(`cd ${tempDir} && git init`);
+    child_process.execSync(`cd ${tempDir} && mkdir -p a/b/c`);
+    fs.writeFileSync(
+      path.join(tempDir, "a", "b", "c", "exists-already.txt"),
+      "Old news"
+    );
+    child_process.execSync(`cd ${tempDir} && git add a/b/c/exists-already.txt`);
+
+    const filename = path.join(tempDir, "hello.txt");
+    const content = "Hello, World!";
+    fs.writeFileSync(filename, content);
+
+    // Get comparison ls files
+    child_process.execSync(`cd ${tempDir} && git add hello.txt`);
+    const lsFilesFromActualGit = child_process
+      .execSync(`cd ${tempDir} && git ls-files --stage`)
+      .toString();
+    child_process.execSync(`cd ${tempDir} && git reset hello.txt`).toString();
+
+    // Act
+    add({ root: tempDir, paths: ["hello.txt"] });
+
+    const lsFilesResultAfterAdd = child_process
+      .execSync(`cd ${tempDir} && git ls-files --stage`)
+      .toString();
+
+    // Assert
+    expect(lsFilesResultAfterAdd).toEqual(lsFilesFromActualGit);
   });
 });
