@@ -7,7 +7,7 @@ import { Mode } from "../types";
 import { IndexEntry, lsFilesInternal } from "./ls-files";
 
 /**
- * Note - This function will write a tree compatible to one that get would write.
+ * Note - This function will write a tree compatible to one that git would write.
  * But there are slight differences that I haven't figured out yet, which result in a different hash.
  *
  * I suspect it has something to do with extensions.
