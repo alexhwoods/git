@@ -8,7 +8,7 @@ import { writeTree } from "./write-tree";
 import { commitTree } from "./commit-tree";
 import { getAuthor } from "../utils/get-author";
 
-describe.skip("commit", () => {
+describe("commit", () => {
   test("single file added", () => {
     // Arrange
     const tempDir = path.join(
